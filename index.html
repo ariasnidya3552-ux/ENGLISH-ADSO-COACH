@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English ADSO Coach</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:760px;margin:40px auto;padding:20px;background:#f4f6f8;color:#222}
+.card{background:white;padding:28px;border-radius:14px;box-shadow:0 3px 12px rgba(0,0,0,.12)}
+button{padding:11px 16px;margin:5px;border:0;border-radius:8px;cursor:pointer;background:#e9edf2;transition:.2s;font-weight:600}button:hover{transform:translateY(-1px);opacity:.9}.topic{color:white}.be-btn{background:#4f81bd}.have-btn{background:#70ad47}.sentence-btn{background:#ed7d31}.action{background:#5b9bd5;color:white}.hint-btn{background:#ffc000;color:#222}.menu-title{color:#2f5597}.feedback-correct{color:#2e7d32;background:#e8f5e9;padding:10px;border-radius:8px}.feedback-wrong{color:#c62828;background:#ffebee;padding:10px;border-radius:8px}
+input{padding:12px;width:90%;font-size:16px;margin:10px 0;border:1px solid #bbb;border-radius:7px}
+.hidden{display:none}.small{color:#666;font-size:14px}#feedback{font-weight:bold;min-height:28px;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>English ADSO Coach</h1>
+<p>Practice basic English with software and technology vocabulary.</p>
+
+<div id="menu">
+<h2>Choose a topic</h2>
+<button class="topic be-btn" onclick="start('be')">Verb to be</button>
+<button class="topic have-btn" onclick="start('have')">Verb have</button>
+<button class="topic sentence-btn" onclick="start('sentence')">Sentence Building</button>
+</div>
+
+<div id="exercise" class="hidden">
+<p id="progress" class="small"></p>
+<h2 id="question"></h2>
+<p id="hint" class="small"></p>
+<input id="answer" type="text" placeholder="Write your answer here">
+<br>
+<button class="action" onclick="checkAnswer()">Check answer</button>
+<button class="hint-btn" onclick="showHint()">Hint</button>
+<div id="feedback"></div>
+<button id="next" class="hidden" onclick="nextExercise()">Next exercise</button>
+<br>
+<button onclick="backMenu()">Back to menu</button>
+</div>
+</div>
+
+<script>
+const data={
+be:[
+{q:'Complete: The website ___ online.',a:'is',h:'The website is one thing. Use is.'},
+{q:'Complete: We ___ a development team.',a:'are',h:'Use are with we.'},
+{q:'Complete: The database ___ secure.',a:'is',h:'Database is singular. Use is.'},
+{q:'Complete: They ___ software developers.',a:'are',h:'Use are with they.'},
+{q:'Complete: I ___ a programmer.',a:'am',h:'Use am with I.'},
+{q:'Make negative: The server is available.',a:'the server is not available',h:'Put not after is.'},
+{q:'Make negative: The applications are ready.',a:'the applications are not ready',h:'Put not after are.'},
+{q:'Make a question: The interface is simple.',a:'is the interface simple',h:'Begin with Is.'},
+{q:'Make a question: The users are active.',a:'are the users active',h:'Begin with Are.'},
+{q:'Complete: The keyboard ___ connected.',a:'is',h:'Keyboard is singular. Use is.'}
+],
+have:[
+{q:'Complete: The server ___ a backup.',a:'has',h:'Server is singular. Use has.'},
+{q:'Complete: We ___ a new project.',a:'have',h:'Use have with we.'},
+{q:'Complete: They ___ several files.',a:'have',h:'Use have with they.'},
+{q:'Complete: The programmer ___ a laptop.',a:'has',h:'Programmer is singular. Use has.'},
+{q:'Complete: I ___ a coding class today.',a:'have',h:'Use have with I.'},
+{q:'Make negative: The application has a bug.',a:'the application does not have a bug',h:'With a singular subject, use does not have.'},
+{q:'Make negative: We have access to the repository.',a:'we do not have access to the repository',h:'With we, use do not have.'},
+{q:'Make a question: The developer has a test.',a:'does the developer have a test',h:'Begin with Does and use have.'},
+{q:'Make a question: They have a meeting.',a:'do they have a meeting',h:'Begin with Do and use have.'},
+{q:'Complete: The user ___ a password.',a:'has',h:'User is singular. Use has.'}
+],
+sentence:[
+{q:'Build the sentence: website / is / fast',a:'the website is fast',h:'Begin with the subject: The website.'},
+{q:'Build the question: server / available / is',a:'is the server available',h:'Begin with Is.'},
+{q:'Build the sentence: developers / have / a / repository',a:'developers have a repository',h:'Subject + have + object.'},
+{q:'Build the sentence: the / database / is / secure',a:'the database is secure',h:'Begin with The database.'},
+{q:'Build the sentence: we / are / a / team',a:'we are a team',h:'Begin with We.'},
+{q:'Build the negative: application / is / not / ready',a:'the application is not ready',h:'Put not after is.'},
+{q:'Build the sentence: the / programmer / has / a / laptop',a:'the programmer has a laptop',h:'Subject + has + object.'},
+{q:'Build the question: the / interface / is / simple',a:'is the interface simple',h:'Begin with Is.'},
+{q:'Build the negative: users / do / not / have / access',a:'users do not have access',h:'Use do not with plural subjects.'},
+{q:'Build the question: the / developer / has / a / test',a:'does the developer have a test',h:'Begin with Does and use have.'}
+]
+};
+let topic='',index=0;
+function start(t){topic=t;index=0;document.getElementById('menu').classList.add('hidden');document.getElementById('exercise').classList.remove('hidden');loadExercise()}
+function normalize(s){return s.toLowerCase().replace(/[?.!,]/g,'').replace(/\s+/g,' ').trim()}
+function loadExercise(){const e=data[topic][index];document.getElementById('progress').textContent=`Exercise ${index+1} of ${data[topic].length}`;document.getElementById('question').textContent=e.q;document.getElementById('hint').textContent='';document.getElementById('answer').value='';document.getElementById('feedback').textContent='';document.getElementById('feedback').className='';document.getElementById('next').classList.add('hidden')}
+function playSound(correct){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return;const ctx=new AudioContext();const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';if(correct){o.frequency.setValueAtTime(660,ctx.currentTime);o.frequency.setValueAtTime(880,ctx.currentTime+.12)}else{o.frequency.setValueAtTime(220,ctx.currentTime);o.frequency.setValueAtTime(165,ctx.currentTime+.16)}g.gain.setValueAtTime(.12,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.35);o.start();o.stop(ctx.currentTime+.35)}
+function checkAnswer(){const user=normalize(document.getElementById('answer').value),correct=normalize(data[topic][index].a),f=document.getElementById('feedback');if(user===correct){f.textContent='✓ Correct! Good job.';f.className='feedback-correct';playSound(true);document.getElementById('next').classList.remove('hidden')}else{f.textContent='✗ Not quite. Try again. Use the hint if you need help.';f.className='feedback-wrong';playSound(false)}}
+function showHint(){document.getElementById('hint').textContent='Hint: '+data[topic][index].h}
+function nextExercise(){if(index<data[topic].length-1){index++;loadExercise()}else{document.getElementById('question').textContent='Great work!';document.getElementById('progress').textContent='';document.getElementById('hint').textContent='You completed this topic.';document.getElementById('answer').classList.add('hidden');document.getElementById('next').classList.add('hidden')}}
+function backMenu(){location.reload()}
+</script>
+</body>
+</html>
